@@ -13,29 +13,34 @@ int main (int argc, char **argv, char **envp)
 {
 
 	char cmd[256];
+	char* cmd2;
 	char* home_dir;
+	char* pch;
 	
 	while (true)
 	{
 		printf("> ");
 		fgets(cmd, sizeof cmd, stdin);
+		cmd2 = strtok (cmd, "\n");
 		
 		
-		
+		pch = strtok(cmd2, " ");
+		printf("begins");
+
 		while (pch != NULL)
   		{
     		printf ("%s\n",pch);
-    		pch = strtok (NULL, " ,.-");
+    		pch = strtok (NULL, " ");
   		}
+				printf("ends");
 		
 		
-		
-		printf("%s", &cmd);
-		if ((strcmp(cmd, "exit\n") == 0) || (strcmp(cmd, "quit\n") == 0))
+		printf("%s", cmd2);
+		if ((strcmp(cmd2, "exit") == 0) || (strcmp(cmd2, "quit") == 0))
 		{
 			break;
 		}
-		if (strcmp(cmd, "cd\n") == 0)
+		if (strcmp(cmd2, "cd") == 0)
 		{
 			int checker = chdir(getenv("HOME"));
 			if(checker == 0 ) 
@@ -58,7 +63,7 @@ int main (int argc, char **argv, char **envp)
 		
 		}
 		
-		if ((strcmp(cmd, "home asd\n") == 0))
+		if ((strcmp(cmd2, "home asd\n") == 0))
 		{
 			printf("recognized\n");
 		  /*chdir(getenv("HOME"));
