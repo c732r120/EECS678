@@ -13,7 +13,6 @@ int main (int argc, char **argv, char **envp)
 {
 
 	char cmd[256];
-	char* cmd2;
 	char* home_dir;
 	char* pch;
 	
@@ -21,10 +20,10 @@ int main (int argc, char **argv, char **envp)
 	{
 		printf("> ");
 		fgets(cmd, sizeof cmd, stdin);
-		cmd2 = strtok (cmd, "\n");
+		cmd[strlen(cmd)-1] = '\0';
 		
 		
-		pch = strtok(cmd2, " ");
+		pch = strtok(cmd, " ");
 		printf("begins");
 
 		while (pch != NULL)
@@ -35,12 +34,12 @@ int main (int argc, char **argv, char **envp)
 				printf("ends");
 		
 		
-		printf("%s", cmd2);
-		if ((strcmp(cmd2, "exit") == 0) || (strcmp(cmd2, "quit") == 0))
+		printf("%s", cmd);
+		if ((strcmp(cmd, "exit") == 0) || (strcmp(cmd, "quit") == 0))
 		{
 			break;
 		}
-		if (strcmp(cmd2, "cd") == 0)
+		if (strcmp(cmd, "cd") == 0)
 		{
 			int checker = chdir(getenv("HOME"));
 			if(checker == 0 ) 
@@ -63,7 +62,7 @@ int main (int argc, char **argv, char **envp)
 		
 		}
 		
-		if ((strcmp(cmd2, "home asd\n") == 0))
+		if ((strcmp(cmd, "home asd\n") == 0))
 		{
 			printf("recognized\n");
 		  /*chdir(getenv("HOME"));
@@ -72,13 +71,7 @@ int main (int argc, char **argv, char **envp)
 		   		    printf("PATH : %s\n", getenv("PATH"));
 					printf("HOME : %s\n", getenv("HOME"));
 					printf("ROOT : %s\n", getenv("ROOT"));
-			/*if((home_dir = getenv("HOME")) == NULL)
-			{
-				printf("I'm here!");
-				home_dir = getpwuid(getuid())->pw_dir;
-			}
-			*/
-			//printf(" OKAY!! %s Done!", &home_dir);
+			
 		}
 		
 		
@@ -87,3 +80,12 @@ int main (int argc, char **argv, char **envp)
 
 	return 0;
 }
+
+
+/*if((home_dir = getenv("HOME")) == NULL)
+			{
+				printf("I'm here!");
+				home_dir = getpwuid(getuid())->pw_dir;
+			}
+			*/
+			//printf(" OKAY!! %s Done!", &home_dir);
