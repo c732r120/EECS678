@@ -57,7 +57,7 @@ int main (int argc, char **argv, char **envp)
     		
   		i++;	
   		}
-		else if(strcmp(first_command, "fork") == 0)
+		if(strcmp(first_command, "fork") == 0)
 		{
 			system("./a.out");
 		}
