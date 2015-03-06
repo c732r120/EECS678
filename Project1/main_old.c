@@ -6,48 +6,23 @@
 #include <sys/types.h>
 #include <dirent.h> 
 #include <pwd.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <signal.h>
 #define clean() printf("\033[H\033[J")
-#define ARRSIZE 1024
-
-int num_children;
-int jobs[ARRSIZE];
-char* commands_list[ARRSIZE];
-
-void exit_handle(int sig)
-{
-	int pid;
-	int j;
-	int jobid;
-	pid = wait(NULL);
-	for (j = 0; j < num_children; j++)
-	{
-		if (jobs[j] == pid)
-		{
-			jobid = j;
-			break;
-		}
-	}
-	printf("\n[%d] %d finished %s\n",jobid, pid, commands_list[jobid]);
-}
 
 
 int main (int argc, char **argv, char **envp) 
 {
-	signal(SIGCHLD, exit_handle);
-	char cmd[ARRSIZE];
-	char cmd2[ARRSIZE]; // just to keep the original value of cmd intact.
+
+	char cmd[1024];
+	char cmd2[1024]; // just to keep the original value of cmd intact.
 	char* home_dir;
 	char* pch;
-	char* commands[ARRSIZE];
-	int i;
-	char cwd[ARRSIZE];
-	char charTotext[ARRSIZE];
+	char* first_command;
+	char* second_command;
+	char cwd[1024];
+	char charTotext[1024];
+	int jobs[1024];
+	int num_children;
 	int endID, status;
-	extern char** environ;
-	//char** environ;
 		num_children=0;
 	//printf("%s", argv[1]);
 	//if(strcmp(argv[1], "<") == 0) printf("%s", argv[2]);
@@ -70,45 +45,52 @@ int main (int argc, char **argv, char **envp)
 		strcpy(cmd2, cmd); // Keep the original value of cmd in cmd2 before the mutations
 		
 		pch = strtok(cmd, " ");
-		i=0;
+		int i=0;
 		while (pch != NULL)
   		{
-		commands[i] = pch;
-    		if(i > 1 && strcmp(commands[0], "cd") ==0)
+    		if(i==0)
+    		{
+    			first_command= pch;
+    		}
+    		if(i==1)
+    		{
+    			second_command = pch;
+    		}
+    		if(i > 1 && strcmp(first_command, "cd") ==0)
     		{
 				strcpy(charTotext, pch);
-    			commands[1] = strcat(commands[1], " ");
-    			commands[1] = strcat(commands[1], charTotext);
+    			second_command = strcat(second_command, " ");
+    			second_command = strcat(second_command, charTotext);
     		}
     		pch = strtok (NULL, " ");
     		
   		i++;	
   		}
-		if(strcmp(commands[0], "fork") == 0)
+		if(strcmp(first_command, "fork") == 0)
 		{
 			system("./a.out");
 		}
 		/* Command : where - Print the current location. */
-		else if ((strcmp(commands[0], "where") == 0))
+		else if ((strcmp(first_command, "where") == 0))
 		{
 			if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
 		}
-		else if ((strcmp(commands[0], "exit") == 0) || (strcmp(commands[0], "quit") == 0))
+		else if ((strcmp(first_command, "exit") == 0) || (strcmp(first_command, "quit") == 0))
 		{
 			clean();
 			break;
 		}
-		else if (strcmp(commands[0], "set")==0)
+		else if (strcmp(first_command, "set")==0)
 		{
 			if(i == 2)
 			{
 				int ret;
 				char* setHelper;
-				char variable_name[ARRSIZE];
-				char variable_value[ARRSIZE];
-				char setter[ARRSIZE];
+				char variable_name[1024];
+				char variable_value[1024];
+				char setter[1024];
 				int j=0;				
-				setHelper = strtok (commands[1], "=");
+				setHelper = strtok (second_command, "=");
 
 				while (setHelper != NULL)
 		  		{
@@ -145,7 +127,7 @@ int main (int argc, char **argv, char **envp)
 				printf("\tLegal use: set VARIABLE=VALUE  \n\n");
 			}
 		}
-		else if (strcmp(commands[0], "cd") == 0)
+		else if (strcmp(first_command, "cd") == 0)
 		{	
 			// Only one word is present i.e. 'cd'
 			if(i==1) 
@@ -170,13 +152,13 @@ int main (int argc, char **argv, char **envp)
 			if(i>1)
 			{
 				
-				if(strncmp(commands[1], "/", 1)==0)
+				if(strncmp(second_command, "/", 1)==0)
 				{
-					chdir(commands[1]); 
+					chdir(second_command); 
 					printf("Arrived at : ");
 					if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
 				}
-				else if (strcmp(commands[1], "..")==0)
+				else if (strcmp(second_command, "..")==0)
 				{
 					chdir("..");
 					printf("Arrived at : ");
@@ -187,7 +169,7 @@ int main (int argc, char **argv, char **envp)
 					char* changeTo;
 					if (getcwd(cwd, sizeof(cwd)) != NULL);
 					changeTo = strcat(cwd, "/");
-					changeTo = strcat(changeTo, commands[1]);
+					changeTo = strcat(changeTo, second_command);
 					chdir(changeTo); 
 					
 					printf("Arrived at : ");
@@ -205,7 +187,7 @@ int main (int argc, char **argv, char **envp)
 			printf("ROOT : %s\n\n", getenv("ROOT"));
 			
 		}
-		else if(strcmp(commands[0], "ls" )== 0 || strcmp(commands[0], "dir" )== 0)
+		else if(strcmp(first_command, "ls" )== 0 || strcmp(first_command, "dir" )== 0)
 		{
 			DIR	*d;
 			struct dirent *dir;
@@ -229,24 +211,28 @@ int main (int argc, char **argv, char **envp)
 		
 		
 		int pid;
-		int status;
-		pid = fork();
+		char lastchar;
+		lastchar = first_command[strlen(first_command)-1];
+			
+		 pid = fork();
 		
 		 // Parent
-		 if(pid > 0)
+		 if(pid)
 		 {
 		 	jobs[num_children] = pid;
-			commands_list[num_children] = cmd2;
 		 	num_children++;
-			if (strcmp(commands[i-1], "&") == 0)
+		 	
+
+			if (lastchar == '&')
 			{
-				printf("[%d] %d running in background",num_children - 1, jobs[num_children-1]);
+				printf("Parent continues.\n");
+				printf("pid is : %d\n", jobs[num_children-1]);
 		 	}
 		 	else
 		 	{
 				printf("Parent waits. \n");
 				printf("pid is : %d\n", jobs[num_children-1]);
-		 		endID = waitpid(pid, &status, 0);
+		 		endID = wait(NULL);
 		 		printf("Process %d ended\n", endID);
 		 		printf("Parent continues.\n");	
 		 	}
@@ -254,35 +240,31 @@ int main (int argc, char **argv, char **envp)
 		 // Child
 		 else
 		 {
-			printf("in child");
-			if (strcmp(commands[i - 1], "&") == 0)
+		 
+			printf("in child!\n");
+			if(lastchar=='&')
 			{
 				setpgid(0, 0);
+				first_command= strtok(first_command, "&");
 				int exists;
-				commands[i-1] = NULL;
-				exists= execvpe(commands[0], commands, environ); // Linux
-				//exists= execvp(commands[0], commands);	// OS X
+				exists=execvp(first_command , &first_command);
 				if(exists == -1)
 				{
 					printf("ERROR:\tcommand not recognized. \n\n");
-					printf("errno: %s\n", strerror(errno));
 				}
 				
 		 	}
 		 	else
 		 	{
 				int exists;
-				commands[i] = NULL;
-				exists= execvpe(commands[0], commands, environ); // Linux
-				// exists= execvp(commands[0], commands); // OS X
+				exists= execvp(first_command, &first_command);
 				if(exists == -1)
 				{
 					printf("ERROR:\tcommand not recognized. \n\n");
-					printf("errno: %s\n", strerror(errno));
 				}			
 			}
 		 	
-		 	return 0; // Necessary
+		 	return 0;
 		 
 		 }
 		
