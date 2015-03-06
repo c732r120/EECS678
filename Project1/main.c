@@ -22,6 +22,7 @@ int main (int argc, char **argv, char **envp)
 	char charTotext[1024];
 	int jobs[1024];
 	int num_children;
+	int endID, status;
 		num_children=0;
 	//printf("%s", argv[1]);
 	//if(strcmp(argv[1], "<") == 0) printf("%s", argv[2]);
@@ -31,6 +32,11 @@ int main (int argc, char **argv, char **envp)
 	
 	while (true)
 	{
+		endID = waitpid(-1, &status, WNOHANG);	
+		if(endID > 0)
+		{
+			printf("Process %d ended\n", endID);
+		}
 		printf("> ");
 		
 		fgets(cmd, sizeof cmd, stdin);
@@ -181,11 +187,6 @@ int main (int argc, char **argv, char **envp)
 			printf("ROOT : %s\n\n", getenv("ROOT"));
 			
 		}
-		else if ((strcmp(cmd2, "crap crap") == 0))
-		{
-			chdir("/Users/chinmay/Documents/KU/Spring 2015");
-			if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
-		}
 		else if(strcmp(first_command, "ls" )== 0 || strcmp(first_command, "dir" )== 0)
 		{
 			DIR	*d;
@@ -224,12 +225,15 @@ int main (int argc, char **argv, char **envp)
 
 			if (lastchar == '&')
 			{
-				printf("Parent continues.\n");	
+				printf("Parent continues.\n");
+				printf("pid is : %d\n", jobs[num_children-1]);
 		 	}
 		 	else
 		 	{
 				printf("Parent waits. \n");
-		 		wait(NULL);
+				printf("pid is : %d\n", jobs[num_children-1]);
+		 		endID = wait(NULL);
+		 		printf("Process %d ended\n", endID);
 		 		printf("Parent continues.\n");	
 		 	}
 		 }
@@ -240,11 +244,10 @@ int main (int argc, char **argv, char **envp)
 			printf("in child!\n");
 			if(lastchar=='&')
 			{
-				
-
+				setpgid(0, 0);
 				first_command= strtok(first_command, "&");
 				int exists;
-				exists=execvp(first_command, &first_command);
+				exists=execvp(first_command , &first_command);
 				if(exists == -1)
 				{
 					printf("ERROR:\tcommand not recognized. \n\n");
