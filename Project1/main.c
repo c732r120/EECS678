@@ -209,37 +209,58 @@ int main (int argc, char **argv, char **envp)
 		{
 		
 		
-		 int pid;
+		int pid;
+		char lastchar;
+		lastchar = first_command[strlen(first_command)-1];
+			
 		 pid = fork();
-		 
+		
 		 // Parent
 		 if(pid)
 		 {
 		 	jobs[num_children] = pid;
 		 	num_children++;
 		 	
-			char lastchar;
-			lastchar = first_command[strlen(first_command)-1];
+
 			if (lastchar == '&')
 			{
-				printf("The character was &, so I'm just going to continue.\n");
-		 		continue;
+				printf("Parent continues.\n");	
 		 	}
 		 	else
 		 	{
-				printf("I'm going to wait.\n");
+				printf("Parent waits. \n");
 		 		wait(NULL);
-				printf("Done waiting! .\n");
+		 		printf("Parent continues.\n");	
 		 	}
-		 	
-//		 	if (strcmp(first_comma)
 		 }
 		 // Child
 		 else
 		 {
-		 	system("open -a TextEdit");
-		 	//printf("in child!!!");
-		 	//sleep(5);
+		 
+			printf("in child!\n");
+			if(lastchar=='&')
+			{
+				
+
+				first_command= strtok(first_command, "&");
+				int exists;
+				exists=execvp(first_command, &first_command);
+				if(exists == -1)
+				{
+					printf("ERROR:\tcommand not recognized. \n\n");
+				}
+				
+		 	}
+		 	else
+		 	{
+				int exists;
+				exists= execvp(first_command, &first_command);
+				if(exists == -1)
+				{
+					printf("ERROR:\tcommand not recognized. \n\n");
+				}			
+			}
+		 	
 		 	return 0;
 		 
 		 }
