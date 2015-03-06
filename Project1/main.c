@@ -8,6 +8,7 @@
 #include <pwd.h>
 #define clean() printf("\033[H\033[J")
 
+
 int main (int argc, char **argv, char **envp) 
 {
 
@@ -19,7 +20,9 @@ int main (int argc, char **argv, char **envp)
 	char* second_command;
 	char cwd[1024];
 	char charTotext[1024];
-	
+	int jobs[1024];
+	int num_children;
+		num_children=0;
 	//printf("%s", argv[1]);
 	//if(strcmp(argv[1], "<") == 0) printf("%s", argv[2]);
 	
@@ -204,7 +207,46 @@ int main (int argc, char **argv, char **envp)
 		}
 		else
 		{
-			printf("ERROR:\tcommand not recognized. \n\n");
+		
+		
+		 int pid;
+		 pid = fork();
+		 
+		 // Parent
+		 if(pid)
+		 {
+		 	jobs[num_children] = pid;
+		 	num_children++;
+		 	
+			char lastchar;
+			lastchar = first_command[strlen(first_command)-1];
+			if (lastchar == '&')
+			{
+				printf("The character was &, so I'm just going to continue.\n");
+		 		continue;
+		 	}
+		 	else
+		 	{
+				printf("I'm going to wait.\n");
+		 		wait(NULL);
+				printf("Done waiting! .\n");
+		 	}
+		 	
+//		 	if (strcmp(first_comma)
+		 }
+		 // Child
+		 else
+		 {
+		 	system("open -a TextEdit");
+		 	//printf("in child!!!");
+		 	//sleep(5);
+		 	return 0;
+		 
+		 }
+		
+		
+		
+			//printf("ERROR:\tcommand not recognized. \n\n");
 		}
 		
 	}
