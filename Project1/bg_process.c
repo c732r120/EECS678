@@ -13,9 +13,9 @@ int main()
 	while(i<8)
 	{
 		printf("%d ", i);
-		sleep(1);
+		sleep(2);
 		i++;
 	}
-
+printf("\n");
 return 0;
 }

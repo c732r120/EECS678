@@ -11,8 +11,6 @@
 #include<signal.h>
 #define clean() printf("\033[H\033[J")
 #define ARRSIZE 1024
-# define BSIZE 1024
-
 
 int total_id, pipeFound, i;
 int jobs[ARRSIZE];
@@ -22,7 +20,6 @@ int exists;
 
 
 void exit_handle(int sig) {
-
     int pid;
     int j;
     int jobid;
@@ -47,13 +44,13 @@ int main(int argc, char * * argv, char * * envp) {
     char cmd2[ARRSIZE]; // just to keep the original value of cmd intact.
     char temp_str[ARRSIZE];
     char * home_dir;
+    char * commands[ARRSIZE];
     char * pch;
     extern char * * environ;
-	char * commands[ARRSIZE];
     char cwd[ARRSIZE];
     char charTotext[ARRSIZE];
     int endID, status;
-   
+
     total_id = 0;
 
 
@@ -62,6 +59,7 @@ int main(int argc, char * * argv, char * * envp) {
 
 
     while (!((strcmp(commands[0], "exit") == 0) || (strcmp(commands[0], "quit") == 0))) {
+		
         printf("> ");
         while (fgets(cmd, sizeof cmd, stdin) != NULL) {
             cmd[strlen(cmd) - 1] = '\0'; // make the last character '\0'
@@ -72,7 +70,11 @@ int main(int argc, char * * argv, char * * envp) {
             pch = strtok(temp_str, "|");
             if (strcmp(cmd2, pch) != 0) {
                 pipeFound = 1;
-            } else pipeFound = 0;
+            } 
+            else 
+            {
+            	pipeFound = 0;
+            }
 
             pch = strtok(cmd, " ");
             i = 0;
@@ -87,6 +89,10 @@ int main(int argc, char * * argv, char * * envp) {
                 i++;
             }
 
+
+			//printf("\n%s\n", commands[0]);
+			//printf("%s\n", commands[1]);
+			//printf("%s\n", commands[2]);			
             if (commands[1] != NULL) {
                 if (strcmp(commands[1], ">") == 0) {
                     freopen(commands[2], "a", stdout);
@@ -95,7 +101,7 @@ int main(int argc, char * * argv, char * * envp) {
             }
 
             /* Command : where - Print the current location. */
-            if (strcmp(commands[0], "where") == 0 ) {
+            if (strcmp(commands[0], "where") == 0) {
                 if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
             } else if ((strcmp(commands[0], "exit") == 0) || (strcmp(commands[0], "quit") == 0)) {
                 clean();
@@ -147,7 +153,7 @@ int main(int argc, char * * argv, char * * envp) {
                     printf("ERROR:\tInvalid number of arguments provided.\n");
                     printf("\tLegal use: set VARIABLE=VALUE  \n\n");
                 }
-            } else if (strcmp(commands[0], "cd") == 0) {
+            } else if (strcmp(commands[0], "cd") == 0 && pipeFound==0) {
                 // Only one word is present i.e. 'cd'
                 if (i == 1) {
                     int checker = chdir(getenv("HOME"));
@@ -155,22 +161,19 @@ int main(int argc, char * * argv, char * * envp) {
                         printf("Location : HOME.\n");
                         char * cwd;
                         cwd = getcwd(0, 0);
-
-                        /*int len;
-			   		len = strlen(cwd);*/
-
+                        
                     } else {
                         printf("Problem loading the home directory path!\n\n");
                     }
 
                 }
                 if (i > 1) {
-
+					
                     if (strncmp(commands[1], "/", 1) == 0) {
                         chdir(commands[1]);
                         printf("Location : ");
                         if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
-                    } else if (strcmp(commands[1], "..")==0) {
+                    } else if (strcmp(commands[1], "..") == 0) {
                         chdir("..");
                         printf("Location : ");
                         if (getcwd(cwd, sizeof(cwd)) != NULL) printf("%s\n\n", cwd);
@@ -193,14 +196,14 @@ int main(int argc, char * * argv, char * * envp) {
                 printf("HOME : %s\n", getenv("HOME"));
                 printf("ROOT : %s\n\n", getenv("ROOT"));
 
-            } else if (strcmp(commands[0], "ls") == 0) {
+            } else if (strcmp(commands[0], "ls") == 0 && pipeFound == 0) {
                 DIR * d;
                 struct dirent * dir;
                 d = opendir(".");
                 if (d) {
                     int count;
                     while ((dir = readdir(d)) != NULL) {
-                        printf("%s\n", dir->d_name);
+                        printf("%s\n", dir-> d_name);
 
                     }
                     printf("\n");
@@ -208,16 +211,128 @@ int main(int argc, char * * argv, char * * envp) {
 
                 }
 
-            } else {
+            } else if (strcmp(commands[0], "kill") == 0) {
+            	if(i <3){
+	            	printf("ERROR:\t\tInvalid format.\nUSE FORMAT:\tkill 1 pid\n\n");
+	            }
+				else{
+					int get_pid, signal, wasFound, j;
+					get_pid= (int) strtol(commands[2], (char **)NULL, 10);
+        	        wasFound=0;
+            	    for (j = 0; j < total_id; j++) {
+			    	    if (jobs[j] == get_pid) {
+            				if(strcmp(commands[1], "SIGABRT")==0){
+            					kill(get_pid, SIGABRT);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGFPE")==0){
+            					kill(get_pid, SIGFPE);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGILL")==0){
+            					kill(get_pid, SIGILL);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGINT")==0){
+            					kill(get_pid, SIGINT);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGSEGV")==0){
+            					kill(get_pid, SIGSEGV);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGTERM")==0){
+            					kill(get_pid, SIGTERM);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else if(strcmp(commands[1], "SIGKILL")==0){
+            					kill(get_pid, SIGABRT);
+	            				printf("Killing : %d\n", get_pid);
+    	        				break;
+            				}else{
+								wasFound=1;
+            					printf("ERROR:\t\tInvalid SIGNAL.\nOnly the following signals are supported :\n");
+            					printf("\tSIGABRT\t: Abnormal termination\n");
+								printf("\tSIGFPE\t: Floating-Point Exception.\n");
+            					printf("\tSIGILL\t: Illegal Instruction\n");							
+            					printf("\tSIGINT\t: Interrupt\n");
+            					printf("\tSIGSEGV\t: Segmentation Violation\n");
+            					printf("\tSIGTERM\t: Terminate\n");
+            					printf("\tSIGKILL\t: Terminate\n\n");            					
+            					            					 
+            				}            				
+        				}
+    				}
+    				if(j== total_id && wasFound==0){
+	    				printf("Provided pid was not found. Process may already have ended.\n\n");
+	    			}
+    			}
+    			
+            }
+             else {
+
+                if (pipeFound == 1) {
+                    int pipefd_1[2];
+                    int status;
+                    pid_t pid_1, pid_2;
+
+                    if (pipe(pipefd_1) == -1) {
+                        perror("pipe error \n");
+                        exit(1);
+                    }
+
+					// first process
+                    pid_1 = fork();
+                    if (pid_1 == 0) {
+                        char cmdbuf[ARRSIZE];
+                        bzero(cmdbuf, ARRSIZE);
+                        sprintf(cmdbuf, "%s", commands[0]);
+                        dup2(pipefd_1[1], STDOUT_FILENO);
+
+                        close(pipefd_1[0]);
+                        close(pipefd_1[1]);
+
+                        if (execvpe(cmdbuf, argv, environ) < 0) {
+                            fprintf(stderr, "Error executing the first process. ERROR#%d\n", errno);
+                            return EXIT_FAILURE;
+                        }
+                    }
+                    
+					// second process
+                    pid_2 = fork();
+                    if (pid_2 == 0) {
+                        char cmdbuf[ARRSIZE];
+                        bzero(cmdbuf, ARRSIZE);
+                        sprintf(cmdbuf, "%s", commands[2]);
+                        dup2(pipefd_1[0], STDIN_FILENO);
+
+                        close(pipefd_1[0]);
+                        close(pipefd_1[1]);
+
+                        if (execvpe(cmdbuf, argv, environ)  < 0) {
+                            fprintf(stderr, "Error executing the second process. ERROR#%d\n", errno);
+                            return EXIT_FAILURE;
+                        }
+                    }
+					
+					printf("\n");
+                    close(pipefd_1[0]);
+                    close(pipefd_1[1]);
+
+
+					wait(NULL);
+
+				//no special command was recognized and there was no pipe.
+                } else {
                     int pid;
                     int status;
                     pid = fork();
                     // child
                     if (pid == 0) {
-                    	if(i>1){
-                    		if (strcmp(commands[1], "<") == 0) {
-                            	freopen(commands[2], "r", stdin);
-                        	}
+                        if (i > 1) {
+                            if (strcmp(commands[1], "<") == 0) {
+                                freopen(commands[2], "r", stdin);
+                            }
                         }
                         if (strcmp(commands[i - 1], "&") == 0) {
                             commands[i - 1] = NULL;
@@ -228,13 +343,12 @@ int main(int argc, char * * argv, char * * envp) {
                             }
                         } else {
                             commands[i] = NULL;
-                            printf("exec \n");
                             exists = execvpe(commands[0], commands, environ);
                             if (exists == -1) {
                                 printf("ERROR:\tcommand not recognized.\n");
                                 printf("errno: %s\n", strerror(errno));
                             }
-                            
+
                         }
                         return 0; // Necessary
                     }
@@ -248,14 +362,20 @@ int main(int argc, char * * argv, char * * envp) {
                             printf("[%d] %d running in background\n", total_id - 1, jobs[total_id - 1]);
                         } else {
                             isBackground[total_id] = 0;
-                           // endID = wait(NULL);
                             pause();
-                        }                    
+                        }
                     }
-					
+
                 }
+            }
+
             freopen("/dev/tty", "a", stdout);
             printf("> ");
+            int count;
+            for(count = 0; count < i; count ++)
+            {
+            	commands[count]= NULL;
+            }
         }
         // change to user input
         freopen("/dev/tty", "r", stdin);
