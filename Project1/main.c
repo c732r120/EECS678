@@ -291,8 +291,8 @@ int main(int argc, char * * argv, char * * envp) {
 
                         close(pipefd_1[0]);
                         close(pipefd_1[1]);
-
-                        if (execvpe(cmdbuf, argv, environ) < 0) {
+                        //if (execvpe(cmdbuf, argv, environ) < 0) {	//Linux
+                        if (execvp(cmdbuf, argv) < 0) {	// OS X
                             fprintf(stderr, "Error executing the first process. ERROR#%d\n", errno);
                             return EXIT_FAILURE;
                         }
@@ -308,8 +308,8 @@ int main(int argc, char * * argv, char * * envp) {
 
                         close(pipefd_1[0]);
                         close(pipefd_1[1]);
-
-                        if (execvpe(cmdbuf, argv, environ)  < 0) {
+                        if (execvp(cmdbuf, argv) < 0) { // OS X
+                      //  if (execvpe(cmdbuf, argv, environ)  < 0) { // Linux
                             fprintf(stderr, "Error executing the second process. ERROR#%d\n", errno);
                             return EXIT_FAILURE;
                         }
@@ -336,14 +336,16 @@ int main(int argc, char * * argv, char * * envp) {
                         }
                         if (strcmp(commands[i - 1], "&") == 0) {
                             commands[i - 1] = NULL;
-                            exists = execvpe(commands[0], commands, environ);
+                            exists = execvp(commands[0], commands);	// OS X
+                            //exists = execvpe(commands[0], commands, environ); // Linux
                             if (exists == -1) {
                                 printf("ERROR:\tcommand not recognized.\n");
                                 printf("errno: %s\n", strerror(errno));
                             }
                         } else {
                             commands[i] = NULL;
-                            exists = execvpe(commands[0], commands, environ);
+                            exists = execvp(commands[0], commands);  // OS X
+                            //exists = execvpe(commands[0], commands, environ); // Linux
                             if (exists == -1) {
                                 printf("ERROR:\tcommand not recognized.\n");
                                 printf("errno: %s\n", strerror(errno));
