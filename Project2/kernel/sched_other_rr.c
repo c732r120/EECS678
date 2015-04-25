@@ -32,19 +32,31 @@ static void update_curr_other_rr(struct rq *rq)
  // rq is running queue
 static void enqueue_task_other_rr(struct rq *rq, struct task_struct *p, int wakeup, bool b)
 {
+
+	if(wakeup){
+		rq->other_rr.queue.add_tail(p, rq->curr);
+		rq->other_rr.running++;
+	}
 	// not yet implemented
-	list_add_tail(&p->other_rr_run_list, &rq->other_rr.queue);
-	&rq->other_rr.nr_running++;
+	/*list_add_tail(&p->other_rr_run_list, &rq->other_rr.queue);
+	&rq->other_rr.nr_running++;*/
 }
 
 static void dequeue_task_other_rr(struct rq *rq, struct task_struct *p, int sleep)
 {
 	// first update the task's runtime statistics
 	update_curr_other_rr(rq);
+		if(sleep){
+			&p->se->sleep_start = rq->clock;
+			//how long the 
+		}
 
-	// not yet implemented
+		rq->other_rr.queue.del(p); 
+		other_rr_rq->running--;
+	
+	/*// not yet implemented
 	list_del(&p->other_rr_run_list);
-	&rq->other_rr.nr_running--;
+	&rq->other_rr.nr_running--;*/
 }
 
 /*
@@ -62,8 +74,18 @@ static void requeue_task_other_rr(struct rq *rq, struct task_struct *p)
 static void
 yield_task_other_rr(struct rq *rq)
 {
+
+
+	struct list_head *head, *curr;
+	struct task_struct *p;
+		head = &rq->other_rr.queue;
+		curr = head->prev;
+		p = list_entry(curr, struct task_struct, other_rr_run_list);
+		
+		put_prev_task_other_rr(rq, p);
+		requeue_task_other_rr(rq, p);//switch the order of these two?
 	// not yet implemented
-	requeue_task_other_rr(rq, &rq->other_rr);
+	//requeue_task_other_rr(rq, &rq->other_rr);
 }
 
 /*
@@ -84,6 +106,7 @@ static struct task_struct *pick_next_task_other_rr(struct rq *rq)
 	struct other_rr_rq *other_rr_rq;
 	if (rq->other_rr.nr_running > 0) {
 		// not yet implemented
+		
 		next = list_first_entry(&rq->other_rr.queue, struct task_struct, other_rr_run_list);
 		/* after selecting a task, we need to set a timer to maintain correct
 		 * runtime statistics. You can uncomment this line after you have
