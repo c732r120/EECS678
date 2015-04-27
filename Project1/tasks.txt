@@ -1,5 +1,0 @@
-cd
-ls
-cd ..
-get paths
-cd
